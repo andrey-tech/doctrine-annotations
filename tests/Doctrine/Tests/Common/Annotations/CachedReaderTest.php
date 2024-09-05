@@ -7,11 +7,13 @@ use Doctrine\Common\Annotations\CachedReader;
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\Cache;
+use Doctrine\Common\Cache\Psr6\DoctrineProvider;
 use Doctrine\Tests\Common\Annotations\Fixtures\Annotation\Route;
 use Doctrine\Tests\Common\Annotations\Fixtures\ClassThatUsesTraitThatUsesAnotherTraitWithMethods;
 use PHPUnit\Framework\MockObject\MockObject;
 use ReflectionClass;
 use ReflectionMethod;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 use function assert;
 use function class_exists;
@@ -243,13 +245,17 @@ EOS;
 
         eval($code);
 
-        $cache = $this->createMock('Doctrine\Common\Cache\Cache');
-        assert($cache instanceof Cache && $cache instanceof MockObject);
+        if (class_exists(ArrayCache::class)) {
+            $cache = new ArrayCache();
+        } else {
+            $cache = DoctrineProvider::wrap(new ArrayAdapter());
+        }
 
         $reader = new CachedReader(new AnnotationReader(), $cache, true);
         // @phpstan-ignore class.notFound
         $readAnnotations = $reader->getClassAnnotations(new ReflectionClass(CachedEvalClass::class));
 
+        self::assertIsArray($readAnnotations);
         self::assertCount(1, $readAnnotations);
     }
 
