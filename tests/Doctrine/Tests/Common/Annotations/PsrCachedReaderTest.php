@@ -235,6 +235,7 @@ EOS;
 
         eval($code);
 
+        // @phpstan-ignore class.notFound
         $readAnnotations = (new PsrCachedReader(new AnnotationReader(), new ArrayAdapter(), true))
             ->getClassAnnotations(new ReflectionClass(PsrEvalClass::class));
 
