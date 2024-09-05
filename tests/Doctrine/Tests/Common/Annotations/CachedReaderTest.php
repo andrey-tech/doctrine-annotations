@@ -225,6 +225,34 @@ class CachedReaderTest extends AbstractReaderTest
         $this->assertEquals([$route2], $reader->getMethodAnnotations(new ReflectionMethod($className, 'method2')));
     }
 
+    /**
+     * @group 62
+     */
+    public function testReaderDoesNotCacheIfFileDoesNotExistSoLastModificationCannotBeDetermined(): void
+    {
+        $code = <<<'EOS'
+namespace Doctrine\Tests\Common\Annotations;
+
+/**
+ * @\Doctrine\Tests\Common\Annotations\Fixtures\AnnotationTargetClass("Some data")
+ */
+class PsrEvalClass {
+
+}
+EOS;
+
+        eval($code);
+
+        $cache = $this->createMock('Doctrine\Common\Cache\Cache');
+        assert($cache instanceof Cache && $cache instanceof MockObject);
+
+        $reader = new CachedReader(new AnnotationReader(), $cache, true);
+        // @phpstan-ignore class.notFound
+        $readAnnotations = $reader->getClassAnnotations(new ReflectionClass(PsrEvalClass::class));
+
+        self::assertCount(1, $readAnnotations);
+    }
+
     protected function doTestCacheStale(string $className, int $lastCacheModification): CachedReader
     {
         $cacheKey = $className;
