@@ -236,7 +236,7 @@ namespace Doctrine\Tests\Common\Annotations;
 /**
  * @\Doctrine\Tests\Common\Annotations\Fixtures\AnnotationTargetClass("Some data")
  */
-class PsrEvalClass {
+class CachedEvalClass {
 
 }
 EOS;
@@ -248,7 +248,7 @@ EOS;
 
         $reader = new CachedReader(new AnnotationReader(), $cache, true);
         // @phpstan-ignore class.notFound
-        $readAnnotations = $reader->getClassAnnotations(new ReflectionClass(PsrEvalClass::class));
+        $readAnnotations = $reader->getClassAnnotations(new ReflectionClass(CachedEvalClass::class));
 
         self::assertCount(1, $readAnnotations);
     }
